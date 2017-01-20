@@ -1,31 +1,31 @@
 {% extends '_main.html' %}
 {% block main %}
     <div class="row">
-    <div class="col-sm-12 col-md-12"><h2>Список популярных фильмов</h2><br></div>
-    </div>
-    {% for film in films %}
-        <div class="col-sm-12 col md-12 border-bottom">
-            <div class="row">
-                <div class="col-xs-12 col-sm-4 col-md-4 film-logo">
-                    <a href="/movie/{{ film.film_id }}/">
-                        <img src="{{ film.img_small }}" alt="image" class="img-responsive film-img">
-                    </a>
-                </div>
-                <div class="col-sx-12 col-sm-8 col-md-8">
-                    <h4><a href="/movie/{{ film.film_id }}/">{{ film.film }}
-                        {% if film.alternativeHeadline %}
-                        <small> / {{ film.alternativeHeadline }}</small>
-                        {% endif %}
+        <div class="col-sm-12 col-md-12"><h2>Список популярных фильмов</h2><br></div>
+        {% for film in films %}
+            <div class="col-sm-12 col md-12 border-bottom">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-4 col-md-4">
+                        <a href="/movie/{{ film.film_id }}/">
+                            <img src="{{ film.img_small }}" alt="image" class="img-responsive film-img">
                         </a>
-                    </h4>
-                    <p class="text-muted">{{ film.genre }}</p>
-                    <p><b>Рейтинг:</b> {{ film.aggregateRating.ratingValue }} / {{ film.aggregateRating.bestRating }} ({{ film.aggregateRating.ratingCount }} голосов)
-                    <br><b>Количество кинотеатров:</b> {{ film.cinemas_count[city] }}
-                    <br><b>Продолжительноcть:</b> {{ film.duration }} мин.
-                    <br><b>Режиссер:</b> {{ film.director.name }}</p>
-                    <p>{{ film.description }}</p>
+                    </div>
+                    <div class="col-xs-12 col-sm-8 col-md-8">
+                        <h4><a href="/movie/{{ film.film_id }}/">{{ film.film }}
+                            {% if film.alternativeHeadline %}
+                            <small> / {{ film.alternativeHeadline }}</small>
+                            {% endif %}
+                            </a>
+                        </h4>
+                        <p class="text-muted">{{ film.genre }}</p>
+                        <p><b>Рейтинг:</b> {{ film.aggregateRating.ratingValue }} / {{ film.aggregateRating.bestRating }} ({{ film.aggregateRating.ratingCount }} голосов)
+                        <br><b>Количество кинотеатров:</b> {{ film.cinemas_count[city] }}
+                        <br><b>Продолжительноcть:</b> {{ film.duration }} мин.
+                        <br><b>Режиссер:</b> {{ film.director.name }}</p>
+                        <p>{{ film.description }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 {% endblock %}
