@@ -1,17 +1,17 @@
-import json
 import re
+import os
 from datetime import datetime
 from multiprocessing import Pool
 import requests
 from flask import Flask, render_template, request, make_response, redirect, \
-    jsonify
+    jsonify, send_from_directory
 from werkzeug.contrib.cache import SimpleCache
 from afisha import parse_afisha_films_list, parse_afisha_cities, \
     parse_afisha_film_detail, get_url_afisha_for_city
 
 
 POOL_COUNT = 4
-DEFAUL_CITY_ID = 'msk'
+DEFAULT_CITY_ID = 'msk'
 DEFAULT_CITY_NAME = 'Москва'
 app = Flask(__name__)
 cache = SimpleCache()
@@ -25,7 +25,7 @@ def get_page(url):
     return page
 
 
-def get_films_list(city=DEFAUL_CITY_ID):
+def get_films_list(city=DEFAULT_CITY_ID):
     films = cache.get('films') or []
     if not films or city not in films[0].get('cinemas_count', {}).keys():
         url_afisha = get_url_afisha_for_city(city)
@@ -65,8 +65,8 @@ def get_film_detail(film):
     year = datetime.strptime(film_detail.get('datePublished'),
                              "%Y-%m-%dT%H:%M:%S").year
     duration = film_detail.get('duration', {'name': 'PT0H0M'})['name']
-    duration = int(re.sub(r'PT(\d+)H(\d+)M', lambda m: str(int(m.group(1)) * 60
-                                                           + int(m.group(2))),
+    duration = int(re.sub(r'PT(\d+)H(\d+)M', lambda m:
+                          str(int(m.group(1)) * 60 + int(m.group(2))),
                           duration))
     film.update({'film_id': film_id,
                  'img_small': img_small,
@@ -86,7 +86,6 @@ def get_film_detail(film):
                  'text': film_detail.get('text', ''),
                  'alternativeHeadline': film_detail.get('alternativeHeadline',
                                                         '')
-
                  })
     return film
 
@@ -96,12 +95,12 @@ def apply_filters_to_films_list(films, city, top_size=10, cinemas_over=1,
     films.sort(key=lambda d: float(d.get('aggregateRating',
                                          {'ratingValue': 0})['ratingValue']),
                reverse=True)
-    films = list(filter(lambda d: d.get('cinemas_count', {}).get(city, 0)
-                        >= cinemas_over,
+    films = list(filter(lambda d: d.get('cinemas_count', {}).get(city, 0) >=
+                        cinemas_over,
                         films))
     films = list(filter(lambda d: float(d.get('aggregateRating',
-                                        {'ratingValue': 0})['ratingValue'])
-                        >= rating_over,
+                                        {'ratingValue': 0})['ratingValue']) >=
+                        rating_over,
                         films))
     return films[:top_size]
 
@@ -124,13 +123,20 @@ def cities_divided_by_columns(cities, column=6):
     return cities_list_divided
 
 
+def get_city_from_cookie(request, cities, default_city):
+    city = request.cookies.get('city')
+    if city not in cities.keys():
+        city = default_city
+    return city
+
+
 @app.route('/')
 def films_list():
     cities = get_cities_list()
     top_size = request.args.get('top_size', 10, type=int)
     cinemas_over = request.args.get('cinemas_over', 1, type=int)
     rating_over = request.args.get('rating_over', 0, type=float)
-    city = request.cookies.get('city', DEFAUL_CITY_ID)
+    city = get_city_from_cookie(request, cities, DEFAULT_CITY_ID)
     selected_city_name = cities.get(city, DEFAULT_CITY_NAME)
     films = get_films_list(city)
     films = apply_filters_to_films_list(films=films,
@@ -163,7 +169,7 @@ def city_set(city):
 @app.route('/movie/<int:film_id>/')
 def film_detail(film_id):
     cities = get_cities_list()
-    city = request.cookies.get('city', DEFAUL_CITY_ID)
+    city = get_city_from_cookie(request, cities, DEFAULT_CITY_ID)
     selected_city_name = cities.get(city, DEFAULT_CITY_NAME)
     films = get_films_list(city)
     film = next((item for item in films if item['film_id'] == film_id), None)
@@ -178,7 +184,7 @@ def film_detail(film_id):
 @app.route('/api')
 def api_about():
     cities = get_cities_list()
-    city = request.cookies.get('city', DEFAUL_CITY_ID)
+    city = get_city_from_cookie(request, cities, DEFAULT_CITY_ID)
     selected_city_name = cities.get(city, DEFAULT_CITY_NAME)
     return render_template('about_api.html',
                            city=city,
@@ -193,7 +199,7 @@ def api_films_list():
     top_size = request.args.get('top_size', -1, type=int)
     cinemas_over = request.args.get('cinemas_over', 1, type=int)
     rating_over = request.args.get('rating_over', 0, type=float)
-    city = request.args.get('city', DEFAUL_CITY_ID, type=str)
+    city = request.args.get('city', DEFAULT_CITY_ID, type=str)
     films = get_films_list(city)
     films = apply_filters_to_films_list(films=films,
                                         top_size=top_size,
@@ -205,10 +211,17 @@ def api_films_list():
 
 @app.route('/api/movie/<int:film_id>')
 def api_film_detail(film_id):
-    city = request.args.get('city', DEFAUL_CITY_ID, type=str)
+    city = request.args.get('city', DEFAULT_CITY_ID, type=str)
     films = get_films_list(city)
     film = next((item for item in films if item['film_id'] == film_id), None)
     return jsonify(results=film)
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static/img'),
+                               'favicon.ico',
+                               mimetype='image/vnd.microsoft.icon')
 
 
 if __name__ == "__main__":
