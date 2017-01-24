@@ -62,8 +62,9 @@ def get_film_detail(film):
                         film_detail.get('image', ''))
     film_id = re.findall(r'(?<=/)\d+(?=/)', film.get('url'))
     film_id = int(film_id[0]) if film_id else None
-    year = datetime.strptime(film_detail.get('datePublished'),
-                             "%Y-%m-%dT%H:%M:%S").year
+    date_published = film_detail.get('datePublished', None)
+    year = datetime.strptime(date_published, "%Y-%m-%dT%H:%M:%S").year \
+        if date_published else None
     duration = film_detail.get('duration', {'name': 'PT0H0M'})['name']
     duration = int(re.sub(r'PT(\d+)H(\d+)M', lambda m:
                           str(int(m.group(1)) * 60 + int(m.group(2))),
