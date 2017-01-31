@@ -10,6 +10,8 @@ from afisha import parse_afisha_films_list, parse_afisha_cities, \
     parse_afisha_film_detail, get_url_afisha_for_city
 
 
+CACHE_TIMEOUT = 60 * 60 * 12
+COOKIE_AGE = 604800
 POOL_COUNT = 4
 DEFAULT_CITY_ID = 'msk'
 DEFAULT_CITY_NAME = 'Москва'
@@ -18,11 +20,7 @@ cache = SimpleCache()
 
 
 def get_page(url):
-    page = cache.get(url)
-    if page is None:
-        page = requests.get(url, timeout=(10, 10)).text
-        cache.set(url, page, timeout=60*60*12)
-    return page
+    return requests.get(url).text
 
 
 def get_films_list(city=DEFAULT_CITY_ID):
@@ -47,7 +45,7 @@ def get_films_list(city=DEFAULT_CITY_ID):
         pool.close()
         pool.join()
         films = films + new_films
-        cache.set('films', films, timeout=60 * 60 * 12)
+        cache.set('films', films, timeout=CACHE_TIMEOUT)
     return films
 
 
@@ -112,7 +110,7 @@ def get_cities_list():
         url_afisha = get_url_afisha_for_city()
         afisha_page = get_page(url_afisha)
         cities = parse_afisha_cities(afisha_page)
-        cache.set('cities', cities, timeout=60 * 60 * 12)
+        cache.set('cities', cities, timeout=CACHE_TIMEOUT)
     return cities
 
 
@@ -156,14 +154,14 @@ def films_list():
                                       city=city,
                                       header='Главная'
                                       ))
-    resp.set_cookie('city', city, max_age=604800)
+    resp.set_cookie('city', city, max_age=COOKIE_AGE)
     return resp
 
 
 @app.route('/<city>/')
 def city_set(city):
     resp = redirect(request.referrer)
-    resp.set_cookie('city', city, max_age=604800)
+    resp.set_cookie('city', city, max_age=COOKIE_AGE)
     return resp
 
 
