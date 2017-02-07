@@ -10,6 +10,7 @@ from afisha import parse_afisha_films_list, parse_afisha_cities, \
     parse_afisha_film_detail, get_url_afisha_for_city
 
 
+HEROKU_LIMIT = 50
 CACHE_TIMEOUT = 60 * 60 * 12
 COOKIE_AGE = 604800
 POOL_COUNT = 4
@@ -41,7 +42,8 @@ def get_films_list(city=DEFAULT_CITY_ID):
         else:
             new_film_without_detail_info = new_films
         pool = Pool(POOL_COUNT)
-        new_films = pool.map(get_film_detail, new_film_without_detail_info)
+        new_films = pool.map(get_film_detail,
+                             new_film_without_detail_info[:HEROKU_LIMIT])
         pool.close()
         pool.join()
         films = films + new_films
