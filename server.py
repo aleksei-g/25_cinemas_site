@@ -10,7 +10,7 @@ from afisha import parse_afisha_films_list, parse_afisha_cities, \
     parse_afisha_film_detail, get_url_afisha_for_city
 
 
-HEROKU_LIMIT = 50
+HEROKU_LIMIT = 30
 CACHE_TIMEOUT = 60 * 60 * 12
 COOKIE_AGE = 604800
 POOL_COUNT = 4
