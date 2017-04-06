@@ -2,9 +2,9 @@ $('.trigger').popover({
     container: 'body',
     html: true,
     title: function () {
-        return $(this).parent().find('.head').html();
+        return $('#head-popover-markup').html();
     },
     content: function () {
-        return $(this).parent().find('.content').html();
+        return $('#content-popover-markup').html();
     }
 });

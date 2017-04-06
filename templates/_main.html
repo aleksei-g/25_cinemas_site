@@ -64,26 +64,30 @@
                                 <li>
                                     <a href="#" class="trigger" data-placement="bottom">Фильтр</a>
                                     <div class="popover-markup">
-                                        <div class="head hide">Установить фильтры</div>
-                                        <div class="content hide">
-                                            <form action="/">
-                                                <div class="form-group">
-                                                <label>Размер списка</label>
-                                                    <input type=number step=1 name="top_size" class="form-control" placeholder="10" value="{{ top_size }}"/>
-                                                </div>
-                                                <div class="form-group">
-                                                <label>Количество кинотеатров</label>
-                                                    <input type=number step=1 name="cinemas_over" class="form-control" placeholder="1" value="{{ cinemas_over }}"/>
-                                                </div>
-                                                <div class="form-group">
-                                                <label>Рейтинг от</label>
-                                                    <input type=number step=0.01 name="rating_over" class="form-control" placeholder="0" value="{{ rating_over }}"/>
-                                                </div>
-                                                <div class="form-group">
-                                                    <button  type="submit" class="btn btn-primary">Применить</button>
-                                                </div>
-                                            </form>
-                                        </div>
+                                        <script id="head-popover-markup" type="text/template">
+                                            <div class="head">Установить фильтры</div>
+                                        </script>
+                                        <script id="content-popover-markup" type="text/template">
+                                            <div class="content">
+                                                <form action="/">
+                                                    <div class="form-group">
+                                                    <label>Размер списка</label>
+                                                        <input type=number step=1 name="top_size" class="form-control" placeholder="10" value="{{ top_size }}"/>
+                                                    </div>
+                                                    <div class="form-group">
+                                                    <label>Количество кинотеатров</label>
+                                                        <input type=number step=1 name="cinemas_over" class="form-control" placeholder="1" value="{{ cinemas_over }}"/>
+                                                    </div>
+                                                    <div class="form-group">
+                                                    <label>Рейтинг от</label>
+                                                        <input type=number step=0.01 name="rating_over" class="form-control" placeholder="0" value="{{ rating_over }}"/>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <button  type="submit" class="btn btn-primary">Применить</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </script>
                                     </div>
                                 </li>
                             </ul>
