@@ -1,4 +1,3 @@
-import re
 from multiprocessing import Pool
 import requests
 from flask import Flask, render_template, request, make_response, redirect, \
@@ -22,30 +21,47 @@ def fetch_page(url):
     return requests.get(url).text
 
 
+def get_films_for_city(city):
+    url_afisha = get_url_afisha_for_city(city)
+    afisha_page = fetch_page(url_afisha)
+    return parse_afisha_films_list(afisha_page, city)
+
+
+def split_films_into_load_and_not_load(films_in_memory, checking_films):
+    if not films_in_memory:
+        return [], checking_films
+    loaded_films = []
+    new_films_without_detail_info = []
+    for checking_film in checking_films:
+        film = next((item for item in films_in_memory if item['film'] ==
+                     checking_film['film']), None)
+        if film:
+            loaded_films.append(checking_film)
+        else:
+            new_films_without_detail_info.append(checking_film)
+    return loaded_films, new_films_without_detail_info
+
+
 def get_films_list(city=DEFAULT_CITY_ID):
     films = cache.get('films') or []
-    if not films or city not in films[0].get('cinemas_count', {}):
-        url_afisha = get_url_afisha_for_city(city)
-        afisha_page = fetch_page(url_afisha)
-        new_films = parse_afisha_films_list(afisha_page, city)
-        if films:
-            new_films_without_detail_info = []
-            for new_film in new_films:
-                film = next((item for item in films if item['film'] ==
-                             new_film['film']), None)
-                if film:
-                    film['cinemas_count'].update(new_film['cinemas_count'])
-                else:
-                    new_films_without_detail_info.append(new_film)
-        else:
-            new_films_without_detail_info = new_films
+    load_cities = cache.get('load_cities') or set()
+    if city not in load_cities:
+        films_for_city = get_films_for_city(city)
+        loaded_films, new_films_without_detail_info = \
+            split_films_into_load_and_not_load(films, films_for_city)
+        for loaded_film in loaded_films:
+            film = next((item for item in films if item['film'] ==
+                         loaded_film['film']), None)
+            film['cinemas_count'].update(loaded_film['cinemas_count'])
         pool = Pool(POOL_COUNT)
-        new_films = pool.map(get_film_detail,
-                             new_films_without_detail_info[:HEROKU_LIMIT])
+        films_for_city = pool.map(get_film_detail,
+                                  new_films_without_detail_info[:HEROKU_LIMIT])
         pool.close()
         pool.join()
-        films = films + new_films
+        films = [*films, *films_for_city]
         cache.set('films', films, timeout=CACHE_TIMEOUT)
+        cache.set('load_cities', load_cities.union({city}),
+                  timeout=CACHE_TIMEOUT)
     return films
 
 
