@@ -15,8 +15,6 @@ def parse_afisha_films_list(page, city):
         film = film_and_cinemas.find('h3', {'class': 'usetags'}).text
         url = film_and_cinemas.find('h3', {'class': 'usetags'}).\
             find('a').get('href')
-        if url[:2] == '//':
-            url = 'http:{}'.format(url)
         cinemas_count = \
             len(film_and_cinemas.findAll('td', {'class': 'b-td-item'}))
         films_list.append({'film': film,

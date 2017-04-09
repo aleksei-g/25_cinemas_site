@@ -20,30 +20,30 @@ app = Flask(__name__)
 cache = SimpleCache()
 
 
-def get_page(url):
+def fetch_page(url):
     return requests.get(url).text
 
 
 def get_films_list(city=DEFAULT_CITY_ID):
     films = cache.get('films') or []
-    if not films or city not in films[0].get('cinemas_count', {}).keys():
+    if not films or city not in films[0].get('cinemas_count', {}):
         url_afisha = get_url_afisha_for_city(city)
-        afisha_page = get_page(url_afisha)
+        afisha_page = fetch_page(url_afisha)
         new_films = parse_afisha_films_list(afisha_page, city)
         if films:
-            new_film_without_detail_info = []
+            new_films_without_detail_info = []
             for new_film in new_films:
                 film = next((item for item in films if item['film'] ==
                              new_film['film']), None)
                 if film:
                     film['cinemas_count'].update(new_film['cinemas_count'])
                 else:
-                    new_film_without_detail_info.append(new_film)
+                    new_films_without_detail_info.append(new_film)
         else:
-            new_film_without_detail_info = new_films
+            new_films_without_detail_info = new_films
         pool = Pool(POOL_COUNT)
         new_films = pool.map(get_film_detail,
-                             new_film_without_detail_info[:HEROKU_LIMIT])
+                             new_films_without_detail_info[:HEROKU_LIMIT])
         pool.close()
         pool.join()
         films = films + new_films
@@ -52,7 +52,7 @@ def get_films_list(city=DEFAULT_CITY_ID):
 
 
 def get_film_detail(film):
-    film_page = get_page(film['url'])
+    film_page = fetch_page(film['url'])
     film_detail = parse_afisha_film_detail(film_page)
     img_small = re.sub(r'^.*.net/',
                        r'https://img06.rl0.ru/afisha/355x200/s1.afisha.net/',
@@ -110,7 +110,7 @@ def get_cities_list():
     cities = cache.get('cities')
     if cities is None:
         url_afisha = get_url_afisha_for_city()
-        afisha_page = get_page(url_afisha)
+        afisha_page = fetch_page(url_afisha)
         cities = parse_afisha_cities(afisha_page)
         cache.set('cities', cities, timeout=CACHE_TIMEOUT)
     return cities
