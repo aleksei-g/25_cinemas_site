@@ -37,13 +37,6 @@
                             </button>
                         </div>
                         <div class="collapse navbar-collapse" id="responsive-menu">
-                            <ul class="nav  navbar-nav hidden-sm hidden-md hidden-lg">
-                                {% if list_links|length > 1 %}
-                                    {% for i in range(1, list_links|length - 1) %}
-                                        <li><a href=" {{ list_links[i].url }}">{{ list_links[i].title }}</a></li>
-                                    {% endfor %}
-                                {% endif %}
-                            </ul>
                             <ul class="nav navbar-nav">
                                 <li class="dropdown">
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Регион: {{ selected_city_name }} <b class="caret"></b></a>
@@ -52,8 +45,8 @@
                                             {% for cities_in_row in cities %}
                                                 <div class="col-sm-2">
                                                     <ul class="multi-column-dropdown">
-                                                        {% for city in cities_in_row %}
-                                                            <li><a href="/{{ city[0] }}/">{{ city[1] }}</a></li>
+                                                        {% for (city_id, city_name) in cities_in_row %}
+                                                            <li><a href="/{{ city_id }}/">{{ city_name }}</a></li>
                                                         {% endfor %}
                                                     </ul>
                                                 </div>
