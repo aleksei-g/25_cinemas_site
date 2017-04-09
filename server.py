@@ -1,10 +1,9 @@
 import re
-import os
 from datetime import datetime
 from multiprocessing import Pool
 import requests
 from flask import Flask, render_template, request, make_response, redirect, \
-    jsonify, send_from_directory
+    jsonify
 from werkzeug.contrib.cache import SimpleCache
 from afisha import parse_afisha_films_list, parse_afisha_cities, \
     parse_afisha_film_detail, get_url_afisha_for_city
@@ -124,39 +123,44 @@ def cities_divided_by_columns(cities, column=6):
     return cities_list_divided
 
 
-def get_city_from_cookie(request, cities, default_city):
+def get_city_from_cookie(cities, default_city):
     city = request.cookies.get('city')
-    if city not in cities.keys():
+    if city not in cities:
         city = default_city
     return city
 
 
+def get_common_context():
+    cities = get_cities_list()
+    city = get_city_from_cookie(cities, DEFAULT_CITY_ID)
+    selected_city_name = cities.get(city, DEFAULT_CITY_NAME)
+    return {'cities': cities_divided_by_columns(cities),
+            'city': city,
+            'selected_city_name': selected_city_name}
+
+
 @app.route('/')
 def films_list():
-    cities = get_cities_list()
+    common_context = get_common_context()
     top_size = request.args.get('top_size', 10, type=int)
     cinemas_over = request.args.get('cinemas_over', 1, type=int)
     rating_over = request.args.get('rating_over', 0, type=float)
-    city = get_city_from_cookie(request, cities, DEFAULT_CITY_ID)
-    selected_city_name = cities.get(city, DEFAULT_CITY_NAME)
-    films = get_films_list(city)
+    films = get_films_list(common_context.get('city'))
     films = apply_filters_to_films_list(films=films,
                                         top_size=top_size,
                                         cinemas_over=cinemas_over,
                                         rating_over=rating_over,
-                                        city=city)
+                                        city=common_context.get('city'))
     resp = \
         make_response(render_template('films_list.html',
                                       films=films,
-                                      cities=cities_divided_by_columns(cities),
                                       top_size=top_size,
                                       cinemas_over=cinemas_over,
                                       rating_over=rating_over,
-                                      selected_city_name=selected_city_name,
-                                      city=city,
-                                      header='Главная'
+                                      header='Главная',
+                                      common_context=common_context
                                       ))
-    resp.set_cookie('city', city, max_age=COOKIE_AGE)
+    resp.set_cookie('city', common_context.get('city'), max_age=COOKIE_AGE)
     return resp
 
 
@@ -169,28 +173,20 @@ def city_set(city):
 
 @app.route('/movie/<int:film_id>/')
 def film_detail(film_id):
-    cities = get_cities_list()
-    city = get_city_from_cookie(request, cities, DEFAULT_CITY_ID)
-    selected_city_name = cities.get(city, DEFAULT_CITY_NAME)
-    films = get_films_list(city)
+    common_context = get_common_context()
+    films = get_films_list(common_context.get('city'))
     film = next((item for item in films if item['film_id'] == film_id), None)
     return render_template('film_detail.html',
                            film=film,
-                           city=city,
-                           cities=cities_divided_by_columns(cities),
-                           selected_city_name=selected_city_name,
+                           common_context=common_context,
                            header=film['film'])
 
 
 @app.route('/api')
 def api_about():
-    cities = get_cities_list()
-    city = get_city_from_cookie(request, cities, DEFAULT_CITY_ID)
-    selected_city_name = cities.get(city, DEFAULT_CITY_NAME)
+    common_context = get_common_context()
     return render_template('about_api.html',
-                           city=city,
-                           cities=cities_divided_by_columns(cities),
-                           selected_city_name=selected_city_name,
+                           common_context=common_context,
                            header='API'
                            )
 

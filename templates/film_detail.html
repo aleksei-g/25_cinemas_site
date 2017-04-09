@@ -17,7 +17,7 @@
                 </div>
                 <div class="col-xs-12 col-sm-12 col-md-5">
                     <p><b>Рейтинг:</b> {{ film.aggregateRating.ratingValue }} / {{ film.aggregateRating.bestRating }} ({{ film.aggregateRating.ratingCount }} голосов)
-                    <br><b>Количество кинотеатров:</b> {{ film.cinemas_count[city] }}
+                    <br><b>Количество кинотеатров:</b> {{ film.cinemas_count[common_context.get('city')] }}
                     <br><b>Год:</b> {{ film.year }}
                     <br><b>Продолжительноcть:</b> {{ film.duration }} мин.
                     <br><b>Режиссер:</b> <a href="{{ film.director.url }}">{{ film.director.name }}</a>

@@ -39,10 +39,10 @@
                         <div class="collapse navbar-collapse" id="responsive-menu">
                             <ul class="nav navbar-nav">
                                 <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Регион: {{ selected_city_name }} <b class="caret"></b></a>
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Регион: {{ common_context['selected_city_name'] }} <b class="caret"></b></a>
                                     <ul class="dropdown-menu multi-column columns-6">
                                         <div class="row">
-                                            {% for cities_in_row in cities %}
+                                            {% for cities_in_row in common_context.get('cities') %}
                                                 <div class="col-sm-2">
                                                     <ul class="multi-column-dropdown">
                                                         {% for (city_id, city_name) in cities_in_row %}

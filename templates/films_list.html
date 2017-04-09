@@ -19,7 +19,7 @@
                         </h4>
                         <p class="text-muted">{{ film.genre }}</p>
                         <p><b>Рейтинг:</b> {{ film.aggregateRating.ratingValue }} / {{ film.aggregateRating.bestRating }} ({{ film.aggregateRating.ratingCount }} голосов)
-                        <br><b>Количество кинотеатров:</b> {{ film.cinemas_count[city] }}
+                        <br><b>Количество кинотеатров:</b> {{ film.cinemas_count[common_context.get('city')] }}
                         <br><b>Продолжительноcть:</b> {{ film.duration }} мин.
                         <br><b>Режиссер:</b> {{ film.director.name }}</p>
                         <p>{{ film.description }}</p>
