@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from multiprocessing import Pool
 import requests
 from flask import Flask, render_template, request, make_response, redirect, \
@@ -53,41 +52,27 @@ def get_films_list(city=DEFAULT_CITY_ID):
 def get_film_detail(film):
     film_page = fetch_page(film['url'])
     film_detail = parse_afisha_film_detail(film_page)
-    img_small = re.sub(r'^.*.net/',
-                       r'https://img06.rl0.ru/afisha/355x200/s1.afisha.net/',
-                       film_detail.get('image', ''))
-    img_medium = re.sub(r'^.*\.net/',
-                        r'https://img06.rl0.ru/afisha/623x350/s1.afisha.net/',
-                        film_detail.get('image', ''))
-    film_id = re.findall(r'(?<=/)\d+(?=/)', film.get('url'))
-    film_id = int(film_id[0]) if film_id else None
-    date_published = film_detail.get('datePublished', None)
-    year = datetime.strptime(date_published, "%Y-%m-%dT%H:%M:%S").year \
-        if date_published else None
-    duration = film_detail.get('duration', {'name': 'PT0H0M'})['name']
-    duration = int(re.sub(r'PT(\d+)H(\d+)M', lambda m:
-                          str(int(m.group(1)) * 60 + int(m.group(2))),
-                          duration))
-    film.update({'film_id': film_id,
-                 'img_small': img_small,
-                 'img_medium': img_medium,
-                 'year': year,
-                 'duration': duration,
-                 'actor': film_detail.get('actor', [{'name': '', 'url': ''}]),
-                 'aggregateRating': film_detail.get('aggregateRating',
-                                                    {'bestRating': 0,
-                                                     'ratingCount': 0,
-                                                     'ratingValue': 0}),
-                 'description': film_detail.get('description', ''),
-                 'director': film_detail.get('director', {'name': '',
-                                                          'url': ''}),
-                 'genre': film_detail.get('genre', ''),
-                 'image': film_detail.get('image', ''),
-                 'text': film_detail.get('text', ''),
-                 'alternativeHeadline': film_detail.get('alternativeHeadline',
-                                                        '')
-                 })
-    return film
+    return {**film,
+            **{'film_id': film_detail.get('film_id'),
+               'img_small': film_detail.get('img_small'),
+               'img_medium': film_detail.get('img_medium'),
+               'year': film_detail.get('year'),
+               'duration': film_detail.get('duration'),
+               'actor': film_detail.get('actor', [{'name': '', 'url': ''}]),
+               'aggregateRating': film_detail.get('aggregateRating',
+                                                  {'bestRating': 0,
+                                                   'ratingCount': 0,
+                                                   'ratingValue': 0}),
+               'description': film_detail.get('description', ''),
+               'director': film_detail.get('director', {'name': '',
+                                                        'url': ''}),
+               'genre': film_detail.get('genre', ''),
+               'image': film_detail.get('image', ''),
+               'text': film_detail.get('text', ''),
+               'alternativeHeadline': film_detail.get('alternativeHeadline',
+                                                      '')
+               }
+            }
 
 
 def apply_filters_to_films_list(films, city, top_size=10, cinemas_over=1,
